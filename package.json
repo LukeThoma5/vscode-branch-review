@@ -1,8 +1,8 @@
 {
   "name": "branch-review",
   "displayName": "Branch Review",
-  "description": "Lists every file changed since the feature branch left develop (committed or not) and opens editable diffs against the branch point.",
-  "version": "0.1.0",
+  "description": "Lists every file changed since the feature branch left develop (committed or not), opens editable diffs against the branch point, and tracks reviewed files and review notes.",
+  "version": "0.2.0",
   "publisher": "local",
   "private": true,
   "license": "UNLICENSED",
@@ -47,9 +47,14 @@
       },
       {
         "command": "branchReview.openAllChanges",
-        "title": "Open All Changes",
+        "title": "Open All Unreviewed Changes",
         "category": "Branch Review",
         "icon": "$(git-compare)"
+      },
+      {
+        "command": "branchReview.openAllChangesIncludingReviewed",
+        "title": "Open All Changes (Including Reviewed)",
+        "category": "Branch Review"
       },
       {
         "command": "branchReview.setBaseBranch",
@@ -85,6 +90,95 @@
         "command": "branchReview.openBaseFile",
         "title": "Open Base Version",
         "category": "Branch Review"
+      },
+      {
+        "command": "branchReview.markReviewed",
+        "title": "Mark as Reviewed",
+        "category": "Branch Review",
+        "icon": "$(check)"
+      },
+      {
+        "command": "branchReview.markUnreviewed",
+        "title": "Mark as Unreviewed",
+        "category": "Branch Review",
+        "icon": "$(pass-filled)"
+      },
+      {
+        "command": "branchReview.toggleReviewed",
+        "title": "Toggle Reviewed (Active File)",
+        "category": "Branch Review"
+      },
+      {
+        "command": "branchReview.clearReviewed",
+        "title": "Clear All Reviewed Marks",
+        "category": "Branch Review"
+      },
+      {
+        "command": "branchReview.hideReviewed",
+        "title": "Hide Reviewed Files",
+        "category": "Branch Review",
+        "icon": "$(eye)"
+      },
+      {
+        "command": "branchReview.showReviewed",
+        "title": "Show Reviewed Files",
+        "category": "Branch Review",
+        "icon": "$(eye-closed)"
+      },
+      {
+        "command": "branchReview.note.create",
+        "title": "Add Note",
+        "category": "Branch Review"
+      },
+      {
+        "command": "branchReview.note.reply",
+        "title": "Reply",
+        "category": "Branch Review"
+      },
+      {
+        "command": "branchReview.note.edit",
+        "title": "Edit",
+        "category": "Branch Review",
+        "icon": "$(edit)"
+      },
+      {
+        "command": "branchReview.note.save",
+        "title": "Save",
+        "category": "Branch Review"
+      },
+      {
+        "command": "branchReview.note.cancelEdit",
+        "title": "Cancel",
+        "category": "Branch Review"
+      },
+      {
+        "command": "branchReview.note.deleteComment",
+        "title": "Delete Comment",
+        "category": "Branch Review",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "branchReview.note.delete",
+        "title": "Delete Note",
+        "category": "Branch Review",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "branchReview.note.resolve",
+        "title": "Resolve Note",
+        "category": "Branch Review",
+        "icon": "$(check)"
+      },
+      {
+        "command": "branchReview.note.unresolve",
+        "title": "Reopen Note",
+        "category": "Branch Review",
+        "icon": "$(issue-reopened)"
+      },
+      {
+        "command": "branchReview.note.reveal",
+        "title": "Go to Note",
+        "category": "Branch Review"
       }
     ],
     "menus": {
@@ -95,46 +189,171 @@
           "group": "navigation@1"
         },
         {
-          "command": "branchReview.viewAsList",
-          "when": "view == branchReview.changes && branchReview.viewAsTree",
+          "command": "branchReview.hideReviewed",
+          "when": "view == branchReview.changes && !branchReview.hideReviewed",
           "group": "navigation@2"
         },
         {
-          "command": "branchReview.viewAsTree",
-          "when": "view == branchReview.changes && !branchReview.viewAsTree",
+          "command": "branchReview.showReviewed",
+          "when": "view == branchReview.changes && branchReview.hideReviewed",
           "group": "navigation@2"
-        },
-        {
-          "command": "branchReview.setBaseBranch",
-          "when": "view == branchReview.changes",
-          "group": "navigation@3"
         },
         {
           "command": "branchReview.refresh",
           "when": "view == branchReview.changes",
-          "group": "navigation@4"
+          "group": "navigation@3"
+        },
+        {
+          "command": "branchReview.viewAsList",
+          "when": "view == branchReview.changes && branchReview.viewAsTree",
+          "group": "1_view@1"
+        },
+        {
+          "command": "branchReview.viewAsTree",
+          "when": "view == branchReview.changes && !branchReview.viewAsTree",
+          "group": "1_view@1"
+        },
+        {
+          "command": "branchReview.openAllChangesIncludingReviewed",
+          "when": "view == branchReview.changes",
+          "group": "2_open@1"
+        },
+        {
+          "command": "branchReview.setBaseBranch",
+          "when": "view == branchReview.changes",
+          "group": "3_base@1"
+        },
+        {
+          "command": "branchReview.clearReviewed",
+          "when": "view == branchReview.changes",
+          "group": "4_reviewed@1"
         }
       ],
       "view/item/context": [
         {
           "command": "branchReview.openFile",
           "when": "view == branchReview.changes && viewItem =~ /^file-[^D]/",
-          "group": "inline"
+          "group": "inline@1"
         },
         {
           "command": "branchReview.openChanges",
           "when": "view == branchReview.changes && viewItem =~ /^file-[MRDC]/",
-          "group": "navigation@1"
+          "group": "1_open@1"
         },
         {
           "command": "branchReview.openFile",
           "when": "view == branchReview.changes && viewItem =~ /^file-[^D]/",
-          "group": "navigation@2"
+          "group": "1_open@2"
         },
         {
           "command": "branchReview.openBaseFile",
           "when": "view == branchReview.changes && viewItem =~ /^file-[MRDC]/",
-          "group": "navigation@3"
+          "group": "1_open@3"
+        },
+        {
+          "command": "branchReview.markReviewed",
+          "when": "view == branchReview.changes && viewItem == folder || view == branchReview.changes && viewItem =~ /^file-.*-unreviewed$/",
+          "group": "2_review@1"
+        },
+        {
+          "command": "branchReview.markUnreviewed",
+          "when": "view == branchReview.changes && viewItem == folder || view == branchReview.changes && viewItem =~ /^file-.*-reviewed$/",
+          "group": "2_review@2"
+        },
+        {
+          "command": "branchReview.note.resolve",
+          "when": "view == branchReview.changes && viewItem == note-unresolved",
+          "group": "inline@1"
+        },
+        {
+          "command": "branchReview.note.unresolve",
+          "when": "view == branchReview.changes && viewItem == note-resolved",
+          "group": "inline@1"
+        },
+        {
+          "command": "branchReview.note.delete",
+          "when": "view == branchReview.changes && viewItem =~ /^note-/",
+          "group": "inline@2"
+        },
+        {
+          "command": "branchReview.note.resolve",
+          "when": "view == branchReview.changes && viewItem == note-unresolved",
+          "group": "1_note@1"
+        },
+        {
+          "command": "branchReview.note.unresolve",
+          "when": "view == branchReview.changes && viewItem == note-resolved",
+          "group": "1_note@1"
+        },
+        {
+          "command": "branchReview.note.delete",
+          "when": "view == branchReview.changes && viewItem =~ /^note-/",
+          "group": "1_note@2"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "branchReview.markReviewed",
+          "when": "resource in branchReview.unreviewedFiles",
+          "group": "navigation@-10"
+        },
+        {
+          "command": "branchReview.markUnreviewed",
+          "when": "resource in branchReview.reviewedFiles",
+          "group": "navigation@-10"
+        }
+      ],
+      "comments/commentThread/context": [
+        {
+          "command": "branchReview.note.create",
+          "group": "inline",
+          "when": "commentController == branchReview.notes && commentThreadIsEmpty"
+        },
+        {
+          "command": "branchReview.note.reply",
+          "group": "inline",
+          "when": "commentController == branchReview.notes && !commentThreadIsEmpty"
+        }
+      ],
+      "comments/commentThread/title": [
+        {
+          "command": "branchReview.note.resolve",
+          "group": "navigation@1",
+          "when": "commentController == branchReview.notes && commentThread == unresolved"
+        },
+        {
+          "command": "branchReview.note.unresolve",
+          "group": "navigation@1",
+          "when": "commentController == branchReview.notes && commentThread == resolved"
+        },
+        {
+          "command": "branchReview.note.delete",
+          "group": "navigation@2",
+          "when": "commentController == branchReview.notes && !commentThreadIsEmpty"
+        }
+      ],
+      "comments/comment/title": [
+        {
+          "command": "branchReview.note.edit",
+          "group": "group@1",
+          "when": "commentController == branchReview.notes"
+        },
+        {
+          "command": "branchReview.note.deleteComment",
+          "group": "group@2",
+          "when": "commentController == branchReview.notes"
+        }
+      ],
+      "comments/comment/context": [
+        {
+          "command": "branchReview.note.cancelEdit",
+          "group": "inline@1",
+          "when": "commentController == branchReview.notes"
+        },
+        {
+          "command": "branchReview.note.save",
+          "group": "inline@2",
+          "when": "commentController == branchReview.notes"
         }
       ],
       "commandPalette": [
@@ -156,6 +375,54 @@
         },
         {
           "command": "branchReview.viewAsList",
+          "when": "false"
+        },
+        {
+          "command": "branchReview.markReviewed",
+          "when": "resource in branchReview.unreviewedFiles"
+        },
+        {
+          "command": "branchReview.markUnreviewed",
+          "when": "resource in branchReview.reviewedFiles"
+        },
+        {
+          "command": "branchReview.note.create",
+          "when": "false"
+        },
+        {
+          "command": "branchReview.note.reply",
+          "when": "false"
+        },
+        {
+          "command": "branchReview.note.edit",
+          "when": "false"
+        },
+        {
+          "command": "branchReview.note.save",
+          "when": "false"
+        },
+        {
+          "command": "branchReview.note.cancelEdit",
+          "when": "false"
+        },
+        {
+          "command": "branchReview.note.deleteComment",
+          "when": "false"
+        },
+        {
+          "command": "branchReview.note.delete",
+          "when": "false"
+        },
+        {
+          "command": "branchReview.note.resolve",
+          "when": "false"
+        },
+        {
+          "command": "branchReview.note.unresolve",
+          "when": "false"
+        },
+        {
+          "command": "branchReview.note.reveal",
           "when": "false"
         }
       ]
