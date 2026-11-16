@@ -1,0 +1,174 @@
+{
+  "name": "branch-review",
+  "displayName": "Branch Review",
+  "description": "Lists every file changed since the feature branch left develop (committed or not) and opens editable diffs against the branch point.",
+  "version": "0.1.0",
+  "publisher": "local",
+  "private": true,
+  "license": "UNLICENSED",
+  "engines": {
+    "vscode": "^1.86.0"
+  },
+  "categories": [
+    "SCM Providers"
+  ],
+  "main": "./extension.js",
+  "extensionDependencies": [
+    "vscode.git"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "branchReview",
+          "title": "Branch Review",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "branchReview": [
+        {
+          "id": "branchReview.changes",
+          "name": "Changed Files",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "branchReview.refresh",
+        "title": "Refresh",
+        "category": "Branch Review",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "branchReview.openAllChanges",
+        "title": "Open All Changes",
+        "category": "Branch Review",
+        "icon": "$(git-compare)"
+      },
+      {
+        "command": "branchReview.setBaseBranch",
+        "title": "Set Base Branch…",
+        "category": "Branch Review",
+        "icon": "$(git-branch)"
+      },
+      {
+        "command": "branchReview.viewAsTree",
+        "title": "View as Tree",
+        "category": "Branch Review",
+        "icon": "$(list-tree)"
+      },
+      {
+        "command": "branchReview.viewAsList",
+        "title": "View as List",
+        "category": "Branch Review",
+        "icon": "$(list-flat)"
+      },
+      {
+        "command": "branchReview.openChanges",
+        "title": "Open Changes",
+        "category": "Branch Review",
+        "icon": "$(diff)"
+      },
+      {
+        "command": "branchReview.openFile",
+        "title": "Open File",
+        "category": "Branch Review",
+        "icon": "$(go-to-file)"
+      },
+      {
+        "command": "branchReview.openBaseFile",
+        "title": "Open Base Version",
+        "category": "Branch Review"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "branchReview.openAllChanges",
+          "when": "view == branchReview.changes",
+          "group": "navigation@1"
+        },
+        {
+          "command": "branchReview.viewAsList",
+          "when": "view == branchReview.changes && branchReview.viewAsTree",
+          "group": "navigation@2"
+        },
+        {
+          "command": "branchReview.viewAsTree",
+          "when": "view == branchReview.changes && !branchReview.viewAsTree",
+          "group": "navigation@2"
+        },
+        {
+          "command": "branchReview.setBaseBranch",
+          "when": "view == branchReview.changes",
+          "group": "navigation@3"
+        },
+        {
+          "command": "branchReview.refresh",
+          "when": "view == branchReview.changes",
+          "group": "navigation@4"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "branchReview.openFile",
+          "when": "view == branchReview.changes && viewItem =~ /^file-[^D]/",
+          "group": "inline"
+        },
+        {
+          "command": "branchReview.openChanges",
+          "when": "view == branchReview.changes && viewItem =~ /^file-[MRDC]/",
+          "group": "navigation@1"
+        },
+        {
+          "command": "branchReview.openFile",
+          "when": "view == branchReview.changes && viewItem =~ /^file-[^D]/",
+          "group": "navigation@2"
+        },
+        {
+          "command": "branchReview.openBaseFile",
+          "when": "view == branchReview.changes && viewItem =~ /^file-[MRDC]/",
+          "group": "navigation@3"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "branchReview.openChanges",
+          "when": "false"
+        },
+        {
+          "command": "branchReview.openFile",
+          "when": "false"
+        },
+        {
+          "command": "branchReview.openBaseFile",
+          "when": "false"
+        },
+        {
+          "command": "branchReview.viewAsTree",
+          "when": "false"
+        },
+        {
+          "command": "branchReview.viewAsList",
+          "when": "false"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Branch Review",
+      "properties": {
+        "branchReview.baseBranch": {
+          "type": "string",
+          "default": "develop",
+          "description": "Branch to compare against. The diff starts from the merge-base of HEAD and this branch, or origin/<branch> if that is more recent."
+        }
+      }
+    }
+  }
+}
